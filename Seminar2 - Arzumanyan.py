@@ -183,5 +183,19 @@ def main():
             comp_sum_coeffs_last[m] += coded_size 
     print time() - thetime
 
-    
+    m_min_fourth = m_min_third + (np.argmin(comp_sum_coeffs_last) - 1) * (m_max_third - m_min_third) / 15
+    m_max_fourth = m_min_third + (np.argmin(comp_sum_coeffs_last) + 1) * (m_max_third - m_min_third) / 15
 
+    thetime = time()
+    comp_sum_coeffs_total = np.zeros(m_max_fourth + 1 - m_min_fourth)
+    for i in xrange(len(compressed_index)):
+        if i % 100000 == 0:
+            print i, time() - thetime
+        for m in xrange(m_min_fourth, m_max_fourth + 1):
+            coded_size = GolombCompress(compressed_index[i], m)
+            comp_sum_coeffs_total[m - m_min_fourth] += coded_size   
+    print time() - thetime
+
+    opt_big_index_m = m_min_fourth + np.argmin(comp_sum_coeffs_total)
+    print 'opt m ', opt_big_index_m
+  
