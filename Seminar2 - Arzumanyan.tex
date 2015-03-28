@@ -1,0 +1,82 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel} %comment it for english!
+\usepackage{amsfonts,longtable,amssymb,amsmath,array}
+\usepackage{graphicx}
+\usepackage{euscript}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\graphicspath{ {images/} }
+\definecolor{linkcolor}{HTML}{799B03} % цвет ссылок
+\definecolor{urlcolor}{HTML}{799B03} % цвет гиперссылок 
+\hypersetup{pdfstartview=FitH,  linkcolor=linkcolor,urlcolor=urlcolor, colorlinks=true}
+\newtheorem{vkTheorem}{Theorem}[section]
+\newtheorem{vkLemma}[vkTheorem]{Lemma}
+\newenvironment{vkProof}%
+   {\par\noindent{\bf Proof.\par\nopagebreak}}%
+   {\hfill$\scriptstyle\blacksquare$\par\medskip}
+%\textwidth=550pt%%
+%\textheight=650pt
+%\oddsidemargin=0pt
+%\hoffset=0pt
+%\voffset=0pt
+%\topmargin=0pt
+%\headheight=0pt
+%\headsep=0pt
+\newcommand{\suml}[0]{\sum\limits}
+\begin{document}
+
+
+\section*{Арзуманян Виталий, CS, 2 курс}
+
+\subsection*{Работа на смоделированных данный}
+Для параметра параметра $m$ в интервале от 1 до 512 на сгенерированных выборках:
+
+\includegraphics[scale=0.5]{1.png}
+
+Оптимальное значение $m=12$, отмечено белым.
+
+\subsection*{Работа на большом индексе}
+
+\subsubsection*{Предобработка}
+
+Индекс состоит из записей вида: номер слова, номер документа:количество.
+Мы проходим по индексу и получаем список массивов, в каждом из которых номер документа повторяется столько раз, сколько в нем встречается заданное слово. Далее список документов упорядочиваетя по возрастанию. На вход для кодирования подаются эти списки. Оптимальный параметр для ускорения подбираем сначала две итерации по степеням двойки в предполагаемом диапазоне, затем с некоторым шагом на отрезке предполагаемого минимум. Минимум рассматриваем для суммарного размера сжатого индекса (не рассчитывая степени сжатия).
+
+Оптимальный параметр - для которого минимальный размер. $m = $
+
+Гистограмма распределения степеней сжатия для этого параметра:
+
+\includegraphics[scale=0.5]{2.png}
+
+
+\subsection*{Оценка параметра распределения}
+
+Самый длинный постинг лист состоит из $N=$ записей.
+Подберем параметры распределения по максимуму правдоподобия:
+$$L = \Pi (1-p)^{X_i}p$$
+$$l = N\log p + \sum X_i\log(1-p)$$
+$$l' = 0 = \frac{N}{p} - \frac{\sum X_i}{1-p}$$
+$$N(1-p) = p\sum X_i$$
+Получаем оценку максимального правдоподобия:
+$$\widehat{p} = \frac{N}{\sum X_i + N}$$
+
+Полученное значение $p=0.944099$.
+
+\subsection*{Оптимальный параметр кода}
+
+Для этого кода оптимальный параметр из перебираемых 512 - максимальный. Степень сжатия 2.78.
+
+\subsection*{Теоретическая оценка}
+
+Теоретическая оценка дает m=1. 
+
+Очевидно, что для некоторых p ($p + p^2 < 1$) будет оценка $m=1$ и так же что при этом кодировании длина кода будет длиной унарной записи числа + 1, что будет длинее начальной записи числа. Следовательно, для таких $p$ теоретическая оценка некорректна - даже простая унарная запись будет более оптимальным кодом.
+
+
+\begin{flushright}
+$\Box$
+\end{flushright}
+
+\end{document} 
