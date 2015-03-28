@@ -59,14 +59,31 @@ def SaveCompCoeffs(filenames):
 
 
 def Vurhis(p):
-    for m in xrange(512):
+    for m in xrange(2 ** 16):
         if p ** (m + 1) + p ** (m + 2) <= 1 and 1 < p ** (m + 1) + p ** m:
             return m+1#, p, p ** (m + 1) + p ** (m + 2),  p ** (m + 1) + p ** m
-    return 512
+    return 2 ** 16
+
+
+def loadLists(filename):
+    """Load index from a file, returns dict key = word number
+    value = list of (document number, count of word in the document)"""
+    index = []
+    i = 0
+    with open(filename, 'r') as index_file:
+        for line in index_file:
+            linelist = line.strip().split()[1:]
+            current_list = []
+            for j in range(0, len(linelist)):
+                current_pair = linelist[j].strip().split(':')
+                for k in xrange(int(current_pair[1])):
+                    current_list.append(int(current_pair[0]))
+            index.append(sorted(current_list))
+    return index
 
 
 def main():
-    thetime = time()
+    """thetime = time()
     filenames = Generate()
     print time() - thetime
 
@@ -74,29 +91,57 @@ def main():
     compcoeffs = SaveCompCoeffs(filenames)
     print time() - thetime
 
-    # best coeff
     totalcoeffs = np.ravel(np.dot(np.ones((1,9), dtype=np.float64), compcoeffs))
     m_opt = np.argmax(totalcoeffs)
-    print 'm=', m_opt + 1 , compcoeffs[:, m_opt], (totalcoeffs[m_opt]) / compcoeffs.shape[0]
 
-    # longest list
-    l = np.argmin(compcoeffs[:, m_opt])
-    with open(filenames[l], 'r') as inputfile:
-        data = []
-        for line in inputfile:
-            if len(line) == 0:
-                 break
-            n = int(line.strip())
-            data.append(n)
-    data = np.array(data)
-    p = (data.shape[0] + 0.) / np.sum(data)
-    p_g = (int(filenames[l]) + 0.) / 1000
-    print 'p from data =', p, ', p from generator =', p_g
+    fig = plt.figure(figsize=(16,6))
+    colors = ('b','g','r','c','m','y','w','b','g')
+    styles = ('-','-','-','-','-','-','-','--','--')
+    axes = fig.add_subplot(1, 1, 1, axisbg='black')
+    for i in xrange(9):
+        plt.plot(compcoeffs[i, :], c=colors[i], ls=styles[i], label = filenames[i])
+    xlim = plt.xlim([0,512])
+    plt.axvline(x=m_opt, ymin=0, ymax=14, color = 'white')
+    plt.legend(framealpha=0.2)
+    """
 
-    # best coeff for longest
-    m_opt_l = np.argmax(compcoeffs[l,:])
-    print 'best m ', m_opt_l+1, compcoeffs[l,m_opt_l]
+    # now the task - optimal m for whole index
+    thetime = time()
+    index = loadLists('index.txt')
+    print time() - thetime
 
-    # best coeff from theory
-    print 'best m theoretical', Vurhis(p), compcoeffs[l, Vurhis(p) - 1]
+    # compressing
+    thetime = time()
+    compressed_index = []
+    empties = []
+    for i in xrange(len(index)):
+        if len(index[i]) > 0:
+            curr_line = np.zeros((len(index[i]),), dtype=int)
+            curr_line[0] = index[i][0]
+            for j in xrange(1, len(index[i])):
+                curr_line[j] = index[i][j] - index[i][j-1]
+            compressed_index.append(curr_line)
+        else:
+            empties.append(i)
+    print time() - thetime
 
+    thetime = time()
+    full_sizes = np.zeros((len(compressed_index)), dtype=int)
+    for i in xrange(len(compressed_index)):
+        full_sizes[i] =  len(compressed_index[i]) * ctypes.sizeof(ctypes.c_int) * 8
+    print time() - thetime
+
+    thetime = time()
+    comp_sum_coeffs_first = np.zeros((16))
+    for i in xrange(len(compressed_index)):
+        if i % 100000 == 0:
+            print i, time() - thetime
+        for m in xrange(16):
+            coded_size = GolombCompress(compressed_index[i], 2 ** m)
+            comp_sum_coeffs_first[m] += coded_size   
+    print time() - thetime
+
+    #plt.plot(comp_sum_coeffs_first)
+    #lim = plt.ylim([0, 0.1 * 10**10])
+
+    
