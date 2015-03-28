@@ -198,4 +198,27 @@ def main():
 
     opt_big_index_m = m_min_fourth + np.argmin(comp_sum_coeffs_total)
     print 'opt m ', opt_big_index_m
+
+    thetime = time()
+    opt_comp_sizes = np.zeros(len(compressed_index))
+    for i in xrange(len(compressed_index)):
+        opt_comp_sizes[i] = GolombCompress(compressed_index[i], opt_big_index_m)
+    print time() - thetime
   
+    # and for the longest list
+    l = np.argmax(full_sizes)
+    print 'max list: ', l, compressed_index[l].shape[0]
+    
+    p_t = (compressed_index[l].shape[0] + 0.) / (compressed_index[l].shape[0] + np.sum(compressed_index[l]))
+    print 'theoretical p: ', p_t
+
+    l_comp_coeffs = np.zeros((2 ** 12))
+    for m in xrange(2 ** 12):
+        l_comp_coeffs[m] = GolombCompress(compressed_index[l], m + 1)
+    m_opt = np.argmin(l_comp_coeffs) + 1
+    print 'optimal m: ', m_opt
+
+    comp =  full_sizes[l] / l_comp_coeffs[m_opt - 1]
+    print 'compression: ', comp
+    
+    print 'theoretical m: ', Vurhis(p_t)
