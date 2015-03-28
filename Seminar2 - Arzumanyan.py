@@ -59,10 +59,10 @@ def SaveCompCoeffs(filenames):
 
 
 def Vurhis(p):
-    for m in xrange(2 ** 16):
+    for m in xrange(2 ** 15):
         if p ** (m + 1) + p ** (m + 2) <= 1 and 1 < p ** (m + 1) + p ** m:
             return m+1#, p, p ** (m + 1) + p ** (m + 2),  p ** (m + 1) + p ** m
-    return 2 ** 16
+    return 2 ** 15
 
 
 def loadLists(filename):
@@ -144,4 +144,44 @@ def main():
     #plt.plot(comp_sum_coeffs_first)
     #lim = plt.ylim([0, 0.1 * 10**10])
 
+    m_min_first = 2 ** (np.argmin(comp_sum_coeffs_first) - 1)
+    m_max_first = 2 ** (np.argmin(comp_sum_coeffs_first) + 1)
+
+    thetime = time()
+    comp_sum_coeffs_second = np.zeros((12))
+    for i in xrange(len(compressed_index)):
+        if i % 100000 == 0:
+            print i, time() - thetime
+        for m in xrange(12):
+            coded_size = GolombCompress(compressed_index[i], m_min_first + 2 ** m)
+            comp_sum_coeffs_second[m] += coded_size   
+    print time() - thetime
+
+    m_min_second = m_min_first + 2 ** 7
+    m_max_second = 2 ** 11
+
+    thetime = time()
+    comp_sum_coeffs_third = np.zeros((16))
+    for i in xrange(len(compressed_index)):
+        if i % 100000 == 0:
+            print i, time() - thetime
+        for m in xrange(16):
+            coded_size = GolombCompress(compressed_index[i], m_min_second + m * (m_max_second - m_min_second) / 15)
+            comp_sum_coeffs_third[m] += coded_size   
+    print time() - thetime
+
+    m_min_third = m_min_second + (np.argmin(comp_sum_coeffs_third) - 1) * (m_max_second - m_min_second) / 15
+    m_max_third = m_min_second + (np.argmin(comp_sum_coeffs_third) + 1) * (m_max_second - m_min_second) / 15
+
+    thetime = time()
+    comp_sum_coeffs_last = np.zeros(16)
+    for i in xrange(len(compressed_index)):
+        if i % 100000 == 0:
+            print i, time() - thetime
+        for m in xrange(16):
+            coded_size = GolombCompress(compressed_index[i], m_min_third + m * (m_max_third - m_min_third) / 15)
+            comp_sum_coeffs_last[m] += coded_size 
+    print time() - thetime
+
     
+
